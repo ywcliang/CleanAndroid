@@ -1,0 +1,57 @@
+apply plugin: 'com.android.library'
+
+android {
+
+    compileSdkVersion 21
+    buildToolsVersion "21.0.0"
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    sourceSets {
+        main {
+            //Path to your source code
+            java {
+                srcDir 'src/main/java'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:21.+'
+    compile files('libs/analytics-6.9.2.jar')
+    compile files('libs/support-v4-21.0.3-sources.jar')
+    compile files('libs/classes.jar')
+}
+
+
+//make jar
+//task to delete the old jar
+task deleteOldJar(type: Delete) {
+    delete 'release/GamePlugin.jar'
+}
+
+//task to export contents as jar
+task exportJar(type: Copy) {
+    from('build/intermediates/bundles/release/')
+    into('release/')
+    include('classes.jar')
+    ///Rename the jar
+    rename('classes.jar', 'GamePlugin.jar')
+
+    //if there is no release folder, type gradle bundleRelease in terminal.
+}
+
+exportJar.dependsOn(deleteOldJar, build)
