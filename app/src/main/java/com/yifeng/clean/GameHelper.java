@@ -5,6 +5,13 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
+import android.os.StatFs;
+import android.text.format.Formatter;
+
+import java.io.File;
+
+import static android.os.Environment.MEDIA_MOUNTED;
 
 /**
  * Created by ywc on 17/3/20.
@@ -51,4 +58,34 @@ public class GameHelper {
         s_GameActivity.startActivity(intent);
     }
 
+    public static long getDeviceStorage()
+    {
+        long totalSize = getDataStorage() + getExternalStorage();
+        return totalSize;
+    }
+
+    private static long getExternalStorage()
+    {
+        if (Environment.getExternalStorageState().equals(MEDIA_MOUNTED))
+        {
+            File path = Environment.getExternalStorageDirectory();
+            StatFs stat = new StatFs(path.getPath());
+            long blockSize = stat.getBlockSize();
+            long availableBlocks = stat.getAvailableBlocks();
+            return blockSize * availableBlocks;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    private static long getDataStorage()
+    {
+        File path = Environment.getDataDirectory();
+        StatFs stat = new StatFs(path.getPath());
+        long blockSize = stat.getBlockSize();
+        long availableBlocks = stat.getAvailableBlocks();
+        return blockSize * availableBlocks;
+    }
 }
