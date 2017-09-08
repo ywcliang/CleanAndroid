@@ -2,6 +2,9 @@
 
     package="com.yifeng.clean">
 
+    <!-- Sort of permissions requires by Flurry -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- permission for google in-app billing-->
     <uses-permission android:name="com.android.vending.BILLING" />
 
