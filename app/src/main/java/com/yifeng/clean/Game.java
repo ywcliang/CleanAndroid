@@ -1,10 +1,15 @@
 package  com.yifeng.clean;
 
+import android.app.Application;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
@@ -32,6 +37,11 @@ import java.util.TimerTask;
  */
 
 public class Game extends UnityPlayerActivity implements com.yifeng.clean.utils.googleInAppBilling.IabBroadcastReceiver.IabBroadcastListener {
+
+    //launch mode
+    public static final int s_NEW_INSTALL = 1;
+    public static final int s_UPDATE_INSTALL = 2;
+    public static final int s_REOPEN = 3;
 
     public static final int s_fIStartActivityTypeNotify = 1;
 
@@ -69,9 +79,13 @@ public class Game extends UnityPlayerActivity implements com.yifeng.clean.utils.
 
     private Inventory m_CInventory;
 
+    private int m_ILaunchMode;
+
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+
+        GameHelper.initGameHelper(this);
 
         //registerReceiver to listen network status changed
         m_CBroadReceiver = new GameBroadCastReceiver();
@@ -79,6 +93,7 @@ public class Game extends UnityPlayerActivity implements com.yifeng.clean.utils.
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(m_CBroadReceiver,filter);
         m_CInventory = null;
+        m_ILaunchMode = s_NEW_INSTALL;
 
         //check if start by notification
         Intent in = getIntent();
@@ -95,6 +110,8 @@ public class Game extends UnityPlayerActivity implements com.yifeng.clean.utils.
             //direct start up
         }
 
+        //check launch status
+        checkInstallStatus();
     }
 
     @Override
@@ -208,6 +225,47 @@ public class Game extends UnityPlayerActivity implements com.yifeng.clean.utils.
             finish();
             System.exit(0);
         }
+    }
+
+    private String getAppVersion() {
+        String versionName = "";
+        Application app = getApplication();
+        try {
+            PackageManager pkgMng = app.getPackageManager();
+            PackageInfo pkgInfo = pkgMng
+                    .getPackageInfo(app.getPackageName(), 0);
+            versionName = pkgInfo.versionName;
+        } catch (Exception e) {
+            versionName = "error";
+        }
+
+        return versionName;
+    }
+
+    //indicate install status
+    private void checkInstallStatus()
+    {
+        SharedPreferences sharedPreferences = getSharedPreferences("installStatus", MODE_PRIVATE);
+        String lastVersion = sharedPreferences.getString("lastVersion", "");
+        String thisVersion = getAppVersion();
+
+        if (TextUtils.isEmpty(lastVersion)) {
+            m_ILaunchMode = s_NEW_INSTALL;
+            sharedPreferences.edit().putString("lastVersion", thisVersion).commit();
+        }
+        else if (!thisVersion.equals(lastVersion)) {
+            m_ILaunchMode = s_UPDATE_INSTALL;
+            sharedPreferences.edit().putString("lastVersion", thisVersion).commit();
+        }
+        else
+            m_ILaunchMode = s_REOPEN;
+
+    }
+
+    //get luanch status
+    public int getLaunchStatus()
+    {
+        return m_ILaunchMode;
     }
 
     //==========================================================google in app billing==========================================================================

@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
-import android.text.format.Formatter;
 
 import java.io.File;
 
@@ -18,6 +17,7 @@ import static android.os.Environment.MEDIA_MOUNTED;
  */
 
 public class GameHelper {
+
     public static Activity s_GameActivity = null;
     public static Context s_Context = null;
 
@@ -88,4 +88,10 @@ public class GameHelper {
         long availableBlocks = stat.getAvailableBlocks();
         return blockSize * availableBlocks;
     }
+
+    public static int getLaunchStatus()
+    {
+        return ((Game)s_GameActivity).getLaunchStatus();
+    }
+
 }
